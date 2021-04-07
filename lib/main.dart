@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 
 void main() {
@@ -32,8 +33,23 @@ class _MyHomePageState extends State<MyHomePage> {
     var lastPosition = await Geolocator.getLastKnownPosition();
     print(lastPosition);
     setState(() {
-      locationMessage = "${postion.latitude}, ${postion.longitude}";
+      locationMessage =
+          "${postion.latitude}, ${postion.longitude}, ${postion.altitude}";
     });
+  }
+
+  _getLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    // debugPrint('location: ${position.latitude}');
+    final coordinates = new Coordinates(position.latitude, position.longitude);
+    var addresses =
+        await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var first = addresses.first;
+    setState(() {
+      locationMessage = "${first.addressLine}";
+    });
+    print("${first.featureName} : ${first.addressLine}");
   }
 
   @override
@@ -65,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(locationMessage),
             FlatButton(
               onPressed: () {
-                getCurrentLocation();
+                _getLocation();
               },
               color: Colors.blue[800],
               child: Text(
